@@ -29,10 +29,10 @@ file_metadata = {}
 # Dark minimal UI (no PDF preview, sticky footer)
 HTML_TEMPLATE = """
 <!DOCTYPE html>
-<html lang="en">
+<html lang=\"en\">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset=\"UTF-8\" />
+    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />
     <title>ResumeStudio — Minimal Dark</title>
     <style>
         :root {
@@ -52,18 +52,26 @@ HTML_TEMPLATE = """
         body {
             margin: 0;
             font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell,
-                Noto Sans, Helvetica Neue, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+                Noto Sans, Helvetica Neue, Arial, \"Apple Color Emoji\", \"Segoe UI Emoji\";
             color: var(--text);
             background: radial-gradient(1200px 600px at 10% 10%, #10192b 0%, #0b0f17 60%) no-repeat fixed;
             min-height: 100vh;
             display: block;
-            padding: 24px 24px 72px;
+            padding: 24px 24px calc(72px + env(safe-area-inset-bottom, 0px));
         }
         .app {
-            width: min(900px, 100%);
+            width: min(1000px, 100%);
             display: grid;
             gap: 18px;
             margin: 0 auto;
+        }
+        .panels {
+            display: grid;
+            gap: 18px;
+            grid-template-columns: 1fr;
+        }
+        @media (min-width: 960px) {
+            .panels { grid-template-columns: 1fr 1fr; }
         }
         .row { display: flex; gap: 12px; align-items: center; }
         .logo {
@@ -110,7 +118,8 @@ HTML_TEMPLATE = """
         button:active { transform: translateY(0); filter: brightness(.98); }
         button.secondary { background: transparent; color: var(--muted); box-shadow: none; border: 1px solid var(--border); }
         button:disabled { opacity: .6; cursor: not-allowed; }
-        .status { font-size: 14px; color: var(--muted); margin-left: 8px; }
+
+        .status { font-size: 14px; color: var(--muted); margin-left: 8px; min-height: 20px; }
         .status.ok { color: var(--success); }
         .status.err { color: var(--error); }
 
@@ -120,11 +129,12 @@ HTML_TEMPLATE = """
             border: 1px solid var(--border);
             border-radius: 12px;
             padding: 12px;
-            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, \"Liberation Mono\", \"Courier New\", monospace;
             font-size: 12.5px;
             color: #d1e0ff;
             line-height: 1.45;
             max-height: 520px;
+            min-height: 220px;
             overflow: auto;
             white-space: pre;
         }
@@ -132,12 +142,29 @@ HTML_TEMPLATE = """
         .link { color: var(--primary); text-decoration: none; }
         .link:hover { text-decoration: underline; }
         .hidden { display: none !important; }
-        #downloadPdf { display: inline-flex; align-items: center; justify-content: center; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--border); background: #0c1220; color: var(--text); }
+
+        /* Download button "reserve" space: invisible until ready, to avoid layout shift */
+        #downloadPdf {
+            display: inline-flex; align-items: center; justify-content: center; padding: 10px 14px;
+            border-radius: 10px; border: 1px solid var(--border); background: #0c1220; color: var(--text);
+            visibility: hidden; pointer-events: none; opacity: .6;
+            transition: color .2s ease, border-color .2s ease, opacity .2s ease;
+        }
+        #downloadPdf.ready { visibility: visible; pointer-events: auto; opacity: 1; }
         #downloadPdf:hover { border-color: var(--primary); color: var(--primary); }
+
+        .spinner {
+            width: 14px; height: 14px; border-radius: 50%;
+            border: 2px solid rgba(124, 156, 255, .35);
+            border-top-color: var(--primary);
+            display: inline-block; margin-right: 8px; vertical-align: -2px;
+            animation: spin .8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
         .fixed-footer {
             position: fixed;
-            bottom: 12px;
+            bottom: calc(12px + env(safe-area-inset-bottom, 0px));
             left: 0; right: 0;
             text-align: center;
             color: var(--muted);
@@ -147,37 +174,39 @@ HTML_TEMPLATE = """
     </style>
 </head>
 <body>
-    <div class="app">
-        <div class="row">
-            <div class="logo">📄</div>
+    <div class=\"app\">
+        <div class=\"row\">
+            <div class=\"logo\">📄</div>
             <div>
-                <div class="title">ResumeStudio</div>
-                <div class="small muted">Minimal dark tool to generate ATS-optimized LaTeX and download the PDF</div>
+                <div class=\"title\">ResumeStudio</div>
+                <div class=\"small muted\">Minimal dark tool to generate ATS-optimized LaTeX and download the PDF</div>
             </div>
-            <div class="badge">1-hour auto cleanup</div>
+            <div class=\"badge\">1-hour auto cleanup</div>
         </div>
 
-        <div class="panel">
-            <label for="jobDescription">Paste Job Description</label>
-            <textarea id="jobDescription" placeholder="Paste the complete job description here..." spellcheck="false"></textarea>
-            <div class="row" style="margin-top:10px; gap:10px; flex-wrap: wrap;">
-                <button id="generateBtn">Generate</button>
-                <button id="clearBtn" class="secondary">Clear</button>
-                <a id="downloadPdf" class="link hidden" href="#" download>Download PDF</a>
-                <div id="status" class="status"></div>
+        <div class=\"panels\">
+            <div class=\"panel\">
+                <label for=\"jobDescription\">Paste Job Description</label>
+                <textarea id=\"jobDescription\" placeholder=\"Paste the complete job description here...\" spellcheck=\"false\"></textarea>
+                <div class=\"row\" style=\"margin-top:10px; gap:10px; flex-wrap: wrap;\">
+                    <button id=\"generateBtn\">Generate</button>
+                    <button id=\"clearBtn\" class=\"secondary\">Clear</button>
+                    <a id=\"downloadPdf\" class=\"link\" href=\"#\" download>Download PDF</a>
+                    <div id=\"status\" class=\"status\"></div>
+                </div>
             </div>
-        </div>
 
-        <div class="panel">
-            <div class="section-title">LaTeX Code</div>
-            <div class="row" style="gap:10px; flex-wrap: wrap; margin-bottom:8px;">
-                <button id="copyLatex" class="secondary">Copy</button>
+            <div class=\"panel\">
+                <div class=\"section-title\">LaTeX Code</div>
+                <div class=\"row\" style=\"gap:10px; flex-wrap: wrap; margin-bottom:8px;\">
+                    <button id=\"copyLatex\" class=\"secondary\">Copy</button>
+                </div>
+                <div id=\"latexContainer\" class=\"code muted\">No output yet.</div>
             </div>
-            <div id="latexContainer" class="code muted">No output yet.</div>
         </div>
     </div>
 
-    <div class="fixed-footer">Crafted with love ❤️ by Koushik navuluri.</div>
+    <div class=\"fixed-footer\">Crafted with love ❤️ by Koushik navuluri.</div>
 
     <script>
         const $ = (sel) => document.querySelector(sel);
@@ -189,9 +218,9 @@ HTML_TEMPLATE = """
         const copyLatexBtn = $('#copyLatex');
         const downloadPdf = $('#downloadPdf');
 
-        function setStatus(msg, type = 'muted') {
-            status.textContent = msg;
+        function setStatus(msg, type = 'muted', isHTML = false) {
             status.className = 'status ' + (type === 'ok' ? 'ok' : type === 'err' ? 'err' : '');
+            if (isHTML) status.innerHTML = msg; else status.textContent = msg;
         }
 
         generateBtn.addEventListener('click', async () => {
@@ -202,9 +231,10 @@ HTML_TEMPLATE = """
             }
 
             generateBtn.disabled = true;
-            setStatus('Generating optimized LaTeX and PDF… This can take up to ~2 minutes.');
+            setStatus('<span class="spinner"></span>Generating optimized LaTeX and PDF… This can take up to ~2 minutes.', 'muted', true);
             latexContainer.textContent = '';
-            downloadPdf.classList.add('hidden');
+            downloadPdf.classList.remove('ready');
+            downloadPdf.href = '#';
 
             try {
                 const res = await fetch('/optimize', {
@@ -224,7 +254,7 @@ HTML_TEMPLATE = """
                 }
 
                 if (data.success && data.pdf_generated && data.download_url) {
-                    downloadPdf.classList.remove('hidden');
+                    downloadPdf.classList.add('ready');
                     downloadPdf.href = data.download_url;
                     setStatus('Success. PDF ready — use Download. Cleanup at: ' + new Date(data.cleanup_time).toLocaleString(), 'ok');
                 } else if (data.success && !data.pdf_generated) {
@@ -243,7 +273,8 @@ HTML_TEMPLATE = """
             jobDescription.value = '';
             latexContainer.textContent = 'No output yet.';
             latexContainer.classList.add('muted');
-            downloadPdf.classList.add('hidden');
+            downloadPdf.classList.remove('ready');
+            downloadPdf.href = '#';
             setStatus('');
         });
 
