@@ -728,17 +728,17 @@ def optimize_resume():
 
 % Name
 \\begin{{center}}
-{{\\huge \\textbf{{Koushik Navuluri}}}}
+{{\\huge \\textbf{{YOUR NAME}}}}
 \\end{{center}}
 
 % Contact Info
 \\begin{{center}}
 \\small
-\\faEnvelope\\ \\href{{mailto:koushiknavuluri@gmail.com}}{{koushiknavuluri@gmail.com}} \\quad
-\\faPhone\\ 8688599125 \\quad
-\\faGlobe\\ \\href{{https://portfolio}}{{portfolio}} \\quad
-\\faLinkedin\\ \\href{{https://linkedin.com/koushiknavuluri}}{{LinkedIn}} \\quad
-\\faGithub\\ \\href{{https://github.com/koushiknavuluri}}{{Github}}
+\\faEnvelope\\ \\href{{mailto:youremail@gmail.com}}{{youremail@gmail.com}} \\quad
+\\faPhone\\ 1234567890 \\quad
+\\faGlobe\\ \\href{{https://portfolio.com}}{{portfolio}} \\quad
+\\faLinkedin\\ \\href{{https://linkedin.com/yourid}}{{LinkedIn}} \\quad
+\\faGithub\\ \\href{{https://github.com/yourid}}{{Github}}
 \\end{{center}}
 
 \\vspace{{6pt}}
@@ -759,8 +759,8 @@ Full-stack developer with expertise in Java, Javascript, Python, and database ma
 \\hrule
 \\vspace{{6pt}}
 \\noindent
-\\textbf{{Bharath University}} \\hfill \\textit{{July 2019 - May 2023}}\\\\
-\\textit{{B.Tech in Computer Science and Engineering}} \\hfill GPA: 9.0/10
+\\textbf{{Your University/College}} \\hfill \\textit{{July 20xx - May 20xx}}\\\\
+\\textit{{B.Tech in Computer Science and Engineering}} \\hfill GPA: X.X/10
 
 \\vspace{{12pt}}
 
@@ -770,7 +770,7 @@ Full-stack developer with expertise in Java, Javascript, Python, and database ma
 \\hrule
 \\vspace{{6pt}}
 \\noindent
-\\textbf{{Accenture}} \\hfill \\textit{{Sep 2023 - Present}}\\\\
+\\textbf{{Company 1}} \\hfill \\textit{{Sep 2023 - Present}}\\\\
 \\textit{{Software Engineer - Microservices, AI Integration, React}}
 \\begin{{itemize}}[leftmargin=1em, itemsep=3pt, topsep=4pt, parsep=0pt]
     \\item Developed and maintained retail applications for enterprise clients, implementing scalable microservices architecture using React.
@@ -783,7 +783,7 @@ Full-stack developer with expertise in Java, Javascript, Python, and database ma
 \\vspace{{6pt}}
 
 \\noindent
-\\textbf{{TEACHNOOK}} \\hfill \\textit{{Feb 2023 - Apr 2023}}\\\\
+\\textbf{{Compamy 2}} \\hfill \\textit{{Feb 2023 - Apr 2023}}\\\\
 \\textit{{Data Science Intern}}
 \\begin{{itemize}}[leftmargin=1em, itemsep=3pt, topsep=4pt, parsep=0pt]
     \\item Explored and analyzed real-world datasets to extract meaningful insights and patterns using Python, Pandas, and NumPy
