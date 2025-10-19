@@ -29,10 +29,10 @@ file_metadata = {}
 # Dark minimal UI
 HTML_TEMPLATE = """
 <!DOCTYPE html>
-<html lang="en">
+<html lang=\"en\">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset=\"UTF-8\" />
+    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />
     <title>ResumeStudio — Minimal Dark</title>
     <style>
         :root {
@@ -52,7 +52,7 @@ HTML_TEMPLATE = """
         body {
             margin: 0;
             font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell,
-                Noto Sans, Helvetica Neue, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+                Noto Sans, Helvetica Neue, Arial, \"Apple Color Emoji\", \"Segoe UI Emoji\";
             color: var(--text);
             background: radial-gradient(1200px 600px at 10% 10%, #10192b 0%, #0b0f17 60%) no-repeat fixed;
             display: grid;
@@ -132,7 +132,7 @@ HTML_TEMPLATE = """
             border: 1px solid var(--border);
             border-radius: 12px;
             padding: 12px;
-            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, \"Liberation Mono\", \"Courier New\", monospace;
             font-size: 12.5px;
             color: #d1e0ff;
             line-height: 1.45;
@@ -156,47 +156,47 @@ HTML_TEMPLATE = """
     </style>
 </head>
 <body>
-    <div class="app">
-        <div class="row">
-            <div class="logo">📄</div>
+    <div class=\"app\">
+        <div class=\"row\">
+            <div class=\"logo\">📄</div>
             <div>
-                <div class="title">ResumeStudio</div>
-                <div class="small muted">Minimal dark tool to generate ATS-optimized LaTeX and preview the PDF</div>
+                <div class=\"title\">ResumeStudio</div>
+                <div class=\"small muted\">Minimal dark tool to generate ATS-optimized LaTeX and preview the PDF</div>
             </div>
-            <div class="right badge">1-hour auto cleanup</div>
+            <div class=\"right badge\">1-hour auto cleanup</div>
         </div>
 
-        <div class="panel">
-            <label for="jobDescription">Paste Job Description</label>
-            <textarea id="jobDescription" placeholder="Paste the complete job description here..." spellcheck="false"></textarea>
-            <div class="spacer"></div>
-            <div class="row actions">
-                <button id="generateBtn">Generate</button>
-                <button id="clearBtn" class="secondary">Clear</button>
-                <div id="status" class="status"></div>
+        <div class=\"panel\">
+            <label for=\"jobDescription\">Paste Job Description</label>
+            <textarea id=\"jobDescription\" placeholder=\"Paste the complete job description here...\" spellcheck=\"false\"></textarea>
+            <div class=\"spacer\"></div>
+            <div class=\"row actions\">
+                <button id=\"generateBtn\">Generate</button>
+                <button id=\"clearBtn\" class=\"secondary\">Clear</button>
+                <div id=\"status\" class=\"status\"></div>
             </div>
         </div>
 
-        <div class="grid">
-            <div class="panel">
-                <div class="section-title">LaTeX Code</div>
-                <div class="row actions">
-                    <button id="copyLatex" class="secondary">Copy</button>
-                    <a id="downloadPdf" class="link hidden" href="#" download>Download PDF</a>
+        <div class=\"grid\">
+            <div class=\"panel\">
+                <div class=\"section-title\">LaTeX Code</div>
+                <div class=\"row actions\">
+                    <button id=\"copyLatex\" class=\"secondary\">Copy</button>
+                    <a id=\"downloadPdf\" class=\"link hidden\" href=\"#\" download>Download PDF</a>
                 </div>
-                <div id="latexContainer" class="code muted">No output yet.</div>
+                <div id=\"latexContainer\" class=\"code muted\">No output yet.</div>
             </div>
 
-            <div class="panel">
-                <div class="section-title">PDF Preview</div>
-                <div id="pdfContainer" class="pdfbox hidden">
-                    <iframe id="pdfFrame" title="Resume PDF Preview"></iframe>
+            <div class=\"panel\">
+                <div class=\"section-title\">PDF Preview</div>
+                <div id=\"pdfContainer\" class=\"pdfbox hidden\">
+                    <iframe id=\"pdfFrame\" title=\"Resume PDF Preview\"></iframe>
                 </div>
-                <div id="pdfPlaceholder" class="muted">Your PDF preview will appear here after generation.</div>
+                <div id=\"pdfPlaceholder\" class=\"muted\">Your PDF preview will appear here after generation.</div>
             </div>
         </div>
 
-        <div class="footer muted">Built with the same AI + PDF generation pipeline. Files are auto-deleted after 1 hour.</div>
+        <div class=\"footer muted\">Built with the same AI + PDF generation pipeline. Files are auto-deleted after 1 hour.</div>
     </div>
 
     <script>
@@ -388,16 +388,40 @@ def ask_perplexity(query: str):
         return f"Error occurred: {str(e)}"
 
 
+def sanitize_latex(latex: str) -> str:
+    if not latex:
+        return latex
+    s = latex.strip()
+    # Remove fenced code markers like ``` or ```latex at start/end of lines
+    s = re.sub(r'^\s*```[\w-]*\s*$', '', s, flags=re.MULTILINE)
+    # Remove any remaining triple backticks just in case
+    s = s.replace('```', '')
+    # Truncate anything after \end{document}
+    end_match = re.search(r'\\end{document}', s, flags=re.IGNORECASE)
+    if end_match:
+        s = s[:end_match.end()]
+    return s.strip()
+
+
 def extract_latex_code(text: str):
-    pattern = r'```(?:latex|tex)\s*(.*?)```'
-    matches = re.findall(pattern, text or "", re.DOTALL | re.IGNORECASE)
-
-    if matches:
-        return matches[0].strip()
-
-    if text and '\\documentclass' in text:
-        return text.strip()
-
+    if not text:
+        return None
+    # Prefer explicit latex/tex fenced block
+    m = re.search(r'```(?:latex|tex)\s*(.*?)\s*```', text, re.DOTALL | re.IGNORECASE)
+    if m:
+        return sanitize_latex(m.group(1))
+    # Fallback: any fenced block that appears to contain LaTeX
+    m2 = re.search(r'```[\w-]*\s*(.*?)\s*```', text, re.DOTALL | re.IGNORECASE)
+    if m2 and ('\\documentclass' in m2.group(1) or '\\begin{document}' in m2.group(1)):
+        return sanitize_latex(m2.group(1))
+    # Fallback: slice from first \\documentclass to end
+    start = text.find('\\documentclass')
+    if start != -1:
+        end_match2 = re.search(r'\\end{document}', text[start:], re.IGNORECASE | re.DOTALL)
+        if end_match2:
+            end_index = start + end_match2.end()
+            return sanitize_latex(text[start:end_index])
+        return sanitize_latex(text[start:])
     return None
 
 
@@ -446,6 +470,7 @@ def check_pdf_status(unique_id: str, max_attempts=30, delay=2):
     for attempt in range(max_attempts):
         try:
             response = std_requests.post(check_url, headers=headers, data=payload, timeout=10)
+
             if response.status_code == 200:
                 result = response.json()
 
@@ -459,7 +484,8 @@ def check_pdf_status(unique_id: str, max_attempts=30, delay=2):
                         time.sleep(delay)
                         continue
                     else:
-                        return "PDF generation timeout"
+                        return f"PDF generation timeout"
+
         except Exception as e:
             if attempt < max_attempts - 1:
                 time.sleep(delay)
@@ -691,6 +717,9 @@ TASK: Revise the provided LaTeX resume code based on the posted job description.
 
         if not latex_code:
             return jsonify({'error': 'Could not extract LaTeX code from response'}), 400
+
+        # Final safety: ensure no stray fences
+        latex_code = sanitize_latex(latex_code)
 
         pdf_response = convert_latex_to_pdf(latex_code)
 
