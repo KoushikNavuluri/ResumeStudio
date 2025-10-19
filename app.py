@@ -735,7 +735,7 @@ def optimize_resume():
 \\begin{{center}}
 \\small
 \\faEnvelope\\ \\href{{mailto:koushiknavuluri@gmail.com}}{{koushiknavuluri@gmail.com}} \\quad
-\\faPhone\\ 8688660029 \\quad
+\\faPhone\\ 8688599125 \\quad
 \\faGlobe\\ \\href{{https://portfolio}}{{portfolio}} \\quad
 \\faLinkedin\\ \\href{{https://linkedin.com/koushiknavuluri}}{{LinkedIn}} \\quad
 \\faGithub\\ \\href{{https://github.com/koushiknavuluri}}{{Github}}
