@@ -1,67 +1,64 @@
-# Perplexity cookie guide and LaTeX prompt template
+# Perplexity Cookie Toolkit + LaTeX Prompt Template
 
-This repository provides a clear, copy‑pasteable guide for:
+A concise, copy‑pasteable toolkit for:
 
-- How to use your own Perplexity browser cookies safely (e.g., in scripts or API-like experiments that rely on your logged‑in session)
-- A well‑tested, “default” LaTeX prompt template you can paste into your system/user prompt to get consistently formatted math output
+- Replacing and using your Perplexity browser cookies safely in scripts
+- A clean, “default” LaTeX prompt template for consistently formatted math
+- Ready‑to‑use examples with curl, Python, and Node.js
 
-Important: This repository contains documentation only. It does not ship code that talks to Perplexity for you. The examples below show how to pass cookies and prompts with common tooling (curl, Python, Node.js), which you can adapt to your own project.
+This repo is documentation‑first. It doesn’t ship an integration to Perplexity; it shows you how to pass your cookie and prompts with common tools, so you can adapt the approach in your own project.
 
 
-## 1) Using your Perplexity cookies
+## Features
 
-Perplexity does not offer a public, stable, unrestricted API that you can use without authentication. Many users experiment by making requests with the same cookies their browser uses when they’re logged in. If you choose to do that, follow the steps and cautions below.
+- Step‑by‑step guide to extract your Perplexity cookie from the browser
+- Secure handling patterns (environment variables, .env)
+- Drop‑in examples for curl, Python (requests), and Node.js (fetch)
+- "Original default" LaTeX prompt template (short + full versions)
+- requirements.txt for Python users and a preconfigured .gitignore to keep secrets out of git
 
-### Security and terms of service
 
-- Your cookies are secrets. Anyone with them can act as you. Never share them, never commit them to Git, and store them like you would a password.
-- Respect Perplexity’s Terms of Service. This guide is intended for educational purposes. Your use is your responsibility.
-- Cookies expire. When a request suddenly starts failing with 401/403, refresh your cookie value from the browser.
+## Requirements
 
-### Get your cookie string (Chrome/Edge/Brave)
+- A Perplexity account and desktop browser (Chrome/Edge/Brave/Firefox)
+- Optional tooling depending on what you want to use:
+  - Python 3.9+ (examples use requests and python‑dotenv)
+  - Node.js 18+ (has native fetch; for Node < 18, use node‑fetch)
+  - curl (for simple shell examples)
 
-1. Log in to https://www.perplexity.ai/ in your browser.
-2. Open Developer Tools → Network tab.
-3. Perform an action that triggers a request (e.g., ask a question).
-4. In the Network list, click any request made to `perplexity.ai`.
-5. Go to the "Headers" panel. Under "Request Headers", locate the `cookie` header.
-6. Right‑click the `cookie` value and copy it. It will look like a semicolon‑separated list:
-   
-   `cookie1=VALUE1; cookie2=VALUE2; cookie3=VALUE3; ...`
-
-Alternative (Application tab):
-
-- Developer Tools → Application → Storage → Cookies → https://www.perplexity.ai
-- Select all relevant cookies and reconstruct the same `name=value; name2=value2; ...` string in the same order.
-
-### Store the cookie securely
-
-Recommended: put it into an environment variable so your scripts can reference it without hard‑coding.
-
-macOS/Linux (bash/zsh):
+If you plan to run the Python examples, install the dependencies provided:
 
 ```bash
-# Temporarily set it for this shell session
-export PPLX_COOKIE='cookie1=VALUE1; cookie2=VALUE2; ...'
-
-# Or store it in a local .env file you DO NOT commit to git
-# .env
-# PPLX_COOKIE='cookie1=VALUE1; cookie2=VALUE2; ...'
+pip install -r requirements.txt
 ```
 
-Windows PowerShell:
+
+## Quick start
+
+1) Clone or download this repository.
+
+2) Put your Perplexity cookie into an environment variable (see “Get your cookie” below):
+
+- macOS/Linux:
+
+```bash
+export PPLX_COOKIE='cookie1=VALUE1; cookie2=VALUE2; ...'
+```
+
+- Windows PowerShell:
 
 ```powershell
 $Env:PPLX_COOKIE = "cookie1=VALUE1; cookie2=VALUE2; ..."
 ```
 
-Add `.env` to your .gitignore (see the .gitignore in this repo) and never commit real cookie strings.
+Optional: create a local .env file (not committed) to load automatically in Python via python‑dotenv:
 
-### Use the cookie in requests
+```
+# .env (do not commit)
+PPLX_COOKIE='cookie1=VALUE1; cookie2=VALUE2; ...'
+```
 
-Below are minimal examples that demonstrate how to forward your browser cookie. Replace the URL and payload with whatever endpoint or route your experiment requires.
-
-Note: The exact Perplexity endpoints/paths may change. These snippets only show how to set the Cookie header correctly.
+3) Try a request:
 
 - curl:
 
@@ -76,8 +73,10 @@ curl "https://www.perplexity.ai/" \
 
 ```python
 import os
+from dotenv import load_dotenv
 import requests
 
+load_dotenv()  # loads .env if present
 cookie = os.environ.get("PPLX_COOKIE", "")
 headers = {
     "Cookie": cookie,
@@ -92,8 +91,7 @@ print(resp.text[:500])
 - Node.js (fetch):
 
 ```js
-import fetch from "node-fetch"; // Node < 18; for Node >= 18, global fetch is available
-
+// Node >= 18 has global fetch
 const cookie = process.env.PPLX_COOKIE || "";
 const res = await fetch("https://www.perplexity.ai/", {
   headers: {
@@ -105,18 +103,30 @@ console.log(res.status);
 console.log((await res.text()).slice(0, 500));
 ```
 
-Troubleshooting:
 
-- 401/403 after it used to work → Your cookie expired. Re-copy it from the browser while logged in.
-- 429/Rate limited → Slow down and respect fair use; automatic scraping may be blocked.
-- Empty or HTML response when you expected JSON → You might be hitting a page endpoint. Inspect your browser’s Network tab to mirror the exact URL, method, and headers your browser uses.
+## How to get your Perplexity cookie
+
+Important: Your cookies are secrets. Do not share them, do not commit them to git, and store them like a password. Respect Perplexity’s Terms of Service. Cookies expire; re‑copy them when you get 401/403 errors.
+
+Steps (Chrome/Edge/Brave):
+
+1. Log in to https://www.perplexity.ai/.
+2. Open DevTools → Network.
+3. Trigger a request (e.g., ask a question).
+4. Click any request to `perplexity.ai` in the Network list.
+5. In Headers → Request Headers, copy the entire value of the `cookie` header.
+6. Save it to `PPLX_COOKIE` (see Quick start above).
+
+Alternative (DevTools → Application → Storage → Cookies → https://www.perplexity.ai):
+- Select relevant cookies and reconstruct `name=value; name2=value2; ...` in the same order.
+
+Replace/rotate your cookie:
+- When a request starts failing with 401/403, or after you log out/in, repeat the steps and update `PPLX_COOKIE`.
 
 
-## 2) Default LaTeX prompt template
+## Default LaTeX prompt template
 
-Below is an “original default” LaTeX‑aware prompt you can paste into your system or user prompt to get consistently formatted math. It balances clarity, correctness, and copy‑paste‑ability.
-
-Short version (use inline):
+Short version (paste into a user prompt):
 
 ```
 You are a math and LaTeX expert. For math:
@@ -126,7 +136,7 @@ You are a math and LaTeX expert. For math:
 - When giving a final result, also output a minimal standalone LaTeX document between the markers BEGIN_LATEX and END_LATEX that renders only the final answer.
 ```
 
-Full version (system prompt):
+Full version (useful as a system prompt):
 
 ```
 You are a rigorous math & LaTeX assistant.
@@ -158,31 +168,31 @@ BEGIN_LATEX
 END_LATEX
 ```
 
-You can combine the short version in a user prompt with the full version as a system prompt for stronger control.
-
 Tips:
-
-- If your application renders Markdown, most renderers (including GitHub) support LaTeX via MathJax when enabled. Use `$` / `$$` as shown.
-- If you need raw TeX output without Markdown surrounding text, ask for only the content between `BEGIN_LATEX` and `END_LATEX`.
-
-
-## 3) Recommended project hygiene
-
-- Never commit secrets: add `.env`, `cookies.txt`, and similar files to `.gitignore`.
-- Rotate your cookie periodically by re‑copying it from the browser.
-- Prefer environment variables over hard‑coded values.
+- If your app renders Markdown with MathJax or KaTeX, use `$` / `$$` as shown.
+- If you need only raw TeX for the final answer, ask for the content strictly between `BEGIN_LATEX` and `END_LATEX`.
 
 
-## 4) FAQ
+## Project structure
 
-- Why do I get HTML instead of JSON?
-  - You’re likely calling a page endpoint. Mirror your browser’s exact request (URL, method, headers). Use DevTools → Network to inspect.
+- README.md — this guide
+- requirements.txt — optional Python dependencies for the examples
+- .gitignore — keeps secrets and common noise files out of git
+- LICENSE — MIT
 
-- Can I extract only a subset of cookies?
-  - Sometimes a single session cookie is enough; other times multiple cookies are required. The safest approach is to copy the complete `cookie` header as seen in a live, authenticated request.
 
-- Is there an official API I should use instead?
-  - If/when Perplexity offers a supported API plan for your needs, prefer that. This guide is for experiments and personal use.
+## Troubleshooting
+
+- 401/403 after it used to work → Your cookie expired. Re‑copy it while logged in.
+- 429 / rate limited → Slow down; automated scraping may be blocked.
+- HTML instead of JSON → You may be hitting a page endpoint. Mirror the exact URL, method, and headers your browser uses (inspect Network tab).
+
+
+## Security and terms
+
+- Treat cookies as secrets; never share or commit them.
+- Use responsibly and comply with Perplexity’s Terms of Service.
+- Prefer an official API if/when one fits your use case.
 
 
 ## License
