@@ -26,13 +26,13 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 # Simple in-memory metadata for generated files
 file_metadata = {}
 
-# Dark minimal UI
+# Dark minimal UI (no PDF preview, sticky footer)
 HTML_TEMPLATE = """
 <!DOCTYPE html>
-<html lang=\"en\">
+<html lang="en">
 <head>
-    <meta charset=\"UTF-8\" />
-    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ResumeStudio — Minimal Dark</title>
     <style>
         :root {
@@ -52,7 +52,7 @@ HTML_TEMPLATE = """
         body {
             margin: 0;
             font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell,
-                Noto Sans, Helvetica Neue, Arial, \"Apple Color Emoji\", \"Segoe UI Emoji\";
+                Noto Sans, Helvetica Neue, Arial, "Apple Color Emoji", "Segoe UI Emoji";
             color: var(--text);
             background: radial-gradient(1200px 600px at 10% 10%, #10192b 0%, #0b0f17 60%) no-repeat fixed;
             display: grid;
@@ -60,15 +60,11 @@ HTML_TEMPLATE = """
             padding: 24px;
         }
         .app {
-            width: min(1100px, 100%);
+            width: min(900px, 100%);
             display: grid;
             gap: 18px;
         }
-        .header {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
+        .row { display: flex; gap: 12px; align-items: center; }
         .logo {
             width: 36px; height: 36px; border-radius: 8px;
             display: grid; place-items: center;
@@ -76,10 +72,9 @@ HTML_TEMPLATE = """
             box-shadow: 0 8px 24px rgba(124, 156, 255, 0.25);
             font-size: 18px;
         }
-        .title {
-            font-weight: 700;
-            letter-spacing: 0.3px;
-        }
+        .title { font-weight: 700; letter-spacing: 0.3px; }
+        .badge { font-size: 12px; padding: 6px 10px; border-radius: 999px; border: 1px solid var(--border); color: var(--muted); margin-left: auto; }
+
         .panel {
             background: var(--panel);
             border: 1px solid var(--border);
@@ -102,8 +97,6 @@ HTML_TEMPLATE = """
             transition: border-color .2s, box-shadow .2s;
         }
         textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(124, 156, 255, .12); }
-        .row { display: flex; gap: 12px; align-items: center; }
-        .row.wrap { flex-wrap: wrap; }
         button {
             appearance: none; border: none; outline: none; cursor: pointer;
             background: linear-gradient(135deg, var(--primary), var(--primary-2));
@@ -114,25 +107,19 @@ HTML_TEMPLATE = """
         }
         button:hover { transform: translateY(-1px); filter: brightness(1.05); }
         button:active { transform: translateY(0); filter: brightness(.98); }
-        button.secondary {
-            background: transparent; color: var(--muted); box-shadow: none; border: 1px solid var(--border);
-        }
+        button.secondary { background: transparent; color: var(--muted); box-shadow: none; border: 1px solid var(--border); }
         button:disabled { opacity: .6; cursor: not-allowed; }
-        .status { font-size: 14px; color: var(--muted); }
+        .status { font-size: 14px; color: var(--muted); margin-left: 8px; }
         .status.ok { color: var(--success); }
         .status.err { color: var(--error); }
 
-        .grid { display: grid; gap: 18px; grid-template-columns: 1fr; }
-        @media (min-width: 1000px) {
-            .grid { grid-template-columns: 1.1fr .9fr; }
-        }
         .section-title { font-size: 13px; color: var(--muted); margin-bottom: 10px; }
         .code {
             background: var(--code-bg);
             border: 1px solid var(--border);
             border-radius: 12px;
             padding: 12px;
-            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, \"Liberation Mono\", \"Courier New\", monospace;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
             font-size: 12.5px;
             color: #d1e0ff;
             line-height: 1.45;
@@ -143,61 +130,50 @@ HTML_TEMPLATE = """
         .muted { color: var(--muted); }
         .link { color: var(--primary); text-decoration: none; }
         .link:hover { text-decoration: underline; }
-        .pdfbox { height: 560px; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); background: #0c1220; }
-        .pdfbox iframe { width: 100%; height: 100%; border: 0; background: #0c1220; }
-        .hidden { display: none !important; }
-        .footer { color: var(--muted); font-size: 12px; text-align: center; }
-        .badge { font-size: 12px; padding: 6px 10px; border-radius: 999px; border: 1px solid var(--border); color: var(--muted); }
-        .spacer { height: 4px; }
-        .actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-        .small { font-size: 12px; }
-        .chip { background: #0c1220; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--border); }
-        .right { margin-left: auto; }
+
+        .fixed-footer {
+            position: fixed;
+            bottom: 12px;
+            left: 0; right: 0;
+            text-align: center;
+            color: var(--muted);
+            font-size: 12px;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
-    <div class=\"app\">
-        <div class=\"row\">
-            <div class=\"logo\">📄</div>
+    <div class="app">
+        <div class="row">
+            <div class="logo">📄</div>
             <div>
-                <div class=\"title\">ResumeStudio</div>
-                <div class=\"small muted\">Minimal dark tool to generate ATS-optimized LaTeX and preview the PDF</div>
+                <div class="title">ResumeStudio</div>
+                <div class="small muted">Minimal dark tool to generate ATS-optimized LaTeX and download the PDF</div>
             </div>
-            <div class=\"right badge\">1-hour auto cleanup</div>
+            <div class="badge">1-hour auto cleanup</div>
         </div>
 
-        <div class=\"panel\">
-            <label for=\"jobDescription\">Paste Job Description</label>
-            <textarea id=\"jobDescription\" placeholder=\"Paste the complete job description here...\" spellcheck=\"false\"></textarea>
-            <div class=\"spacer\"></div>
-            <div class=\"row actions\">
-                <button id=\"generateBtn\">Generate</button>
-                <button id=\"clearBtn\" class=\"secondary\">Clear</button>
-                <div id=\"status\" class=\"status\"></div>
-            </div>
-        </div>
-
-        <div class=\"grid\">
-            <div class=\"panel\">
-                <div class=\"section-title\">LaTeX Code</div>
-                <div class=\"row actions\">
-                    <button id=\"copyLatex\" class=\"secondary\">Copy</button>
-                    <a id=\"downloadPdf\" class=\"link hidden\" href=\"#\" download>Download PDF</a>
-                </div>
-                <div id=\"latexContainer\" class=\"code muted\">No output yet.</div>
-            </div>
-
-            <div class=\"panel\">
-                <div class=\"section-title\">PDF Preview</div>
-                <div id=\"pdfContainer\" class=\"pdfbox hidden\">
-                    <iframe id=\"pdfFrame\" title=\"Resume PDF Preview\"></iframe>
-                </div>
-                <div id=\"pdfPlaceholder\" class=\"muted\">Your PDF preview will appear here after generation.</div>
+        <div class="panel">
+            <label for="jobDescription">Paste Job Description</label>
+            <textarea id="jobDescription" placeholder="Paste the complete job description here..." spellcheck="false"></textarea>
+            <div class="row" style="margin-top:10px; gap:10px; flex-wrap: wrap;">
+                <button id="generateBtn">Generate</button>
+                <button id="clearBtn" class="secondary">Clear</button>
+                <a id="downloadPdf" class="link hidden" href="#" download>Download PDF</a>
+                <div id="status" class="status"></div>
             </div>
         </div>
 
-        <div class=\"footer muted\">Built with the same AI + PDF generation pipeline. Files are auto-deleted after 1 hour.</div>
+        <div class="panel">
+            <div class="section-title">LaTeX Code</div>
+            <div class="row" style="gap:10px; flex-wrap: wrap; margin-bottom:8px;">
+                <button id="copyLatex" class="secondary">Copy</button>
+            </div>
+            <div id="latexContainer" class="code muted">No output yet.</div>
+        </div>
     </div>
+
+    <div class="fixed-footer">Crafted with love ❤️ by Koushik navuluri.</div>
 
     <script>
         const $ = (sel) => document.querySelector(sel);
@@ -207,20 +183,11 @@ HTML_TEMPLATE = """
         const status = $('#status');
         const latexContainer = $('#latexContainer');
         const copyLatexBtn = $('#copyLatex');
-        const pdfContainer = $('#pdfContainer');
-        const pdfFrame = $('#pdfFrame');
-        const pdfPlaceholder = $('#pdfPlaceholder');
         const downloadPdf = $('#downloadPdf');
 
         function setStatus(msg, type = 'muted') {
             status.textContent = msg;
             status.className = 'status ' + (type === 'ok' ? 'ok' : type === 'err' ? 'err' : '');
-        }
-
-        function showPDF(url) {
-            pdfContainer.classList.remove('hidden');
-            pdfPlaceholder.classList.add('hidden');
-            pdfFrame.src = url + '#view=FitH';
         }
 
         generateBtn.addEventListener('click', async () => {
@@ -233,6 +200,7 @@ HTML_TEMPLATE = """
             generateBtn.disabled = true;
             setStatus('Generating optimized LaTeX and PDF… This can take up to ~2 minutes.');
             latexContainer.textContent = '';
+            downloadPdf.classList.add('hidden');
 
             try {
                 const res = await fetch('/optimize', {
@@ -251,11 +219,10 @@ HTML_TEMPLATE = """
                     latexContainer.classList.remove('muted');
                 }
 
-                if (data.success && data.pdf_generated && data.preview_url && data.download_url) {
-                    showPDF(data.preview_url);
+                if (data.success && data.pdf_generated && data.download_url) {
                     downloadPdf.classList.remove('hidden');
                     downloadPdf.href = data.download_url;
-                    setStatus('Success. PDF ready — view preview or download. Cleanup at: ' + new Date(data.cleanup_time).toLocaleString(), 'ok');
+                    setStatus('Success. PDF ready — use Download. Cleanup at: ' + new Date(data.cleanup_time).toLocaleString(), 'ok');
                 } else if (data.success && !data.pdf_generated) {
                     setStatus('LaTeX generated, but PDF failed: ' + (data.pdf_error || 'unknown error'), 'err');
                 } else {
@@ -272,9 +239,6 @@ HTML_TEMPLATE = """
             jobDescription.value = '';
             latexContainer.textContent = 'No output yet.';
             latexContainer.classList.add('muted');
-            pdfContainer.classList.add('hidden');
-            pdfPlaceholder.classList.remove('hidden');
-            pdfFrame.src = '';
             downloadPdf.classList.add('hidden');
             setStatus('');
         });
