@@ -55,14 +55,15 @@ HTML_TEMPLATE = """
                 Noto Sans, Helvetica Neue, Arial, "Apple Color Emoji", "Segoe UI Emoji";
             color: var(--text);
             background: radial-gradient(1200px 600px at 10% 10%, #10192b 0%, #0b0f17 60%) no-repeat fixed;
-            display: grid;
-            place-items: center;
-            padding: 24px;
+            min-height: 100vh;
+            display: block;
+            padding: 24px 24px 72px;
         }
         .app {
             width: min(900px, 100%);
             display: grid;
             gap: 18px;
+            margin: 0 auto;
         }
         .row { display: flex; gap: 12px; align-items: center; }
         .logo {
@@ -130,6 +131,9 @@ HTML_TEMPLATE = """
         .muted { color: var(--muted); }
         .link { color: var(--primary); text-decoration: none; }
         .link:hover { text-decoration: underline; }
+        .hidden { display: none !important; }
+        #downloadPdf { display: inline-flex; align-items: center; justify-content: center; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--border); background: #0c1220; color: var(--text); }
+        #downloadPdf:hover { border-color: var(--primary); color: var(--primary); }
 
         .fixed-footer {
             position: fixed;
