@@ -32,7 +32,7 @@ HTML_TEMPLATE = """
 <html lang=\"en\">
 <head>
     <meta charset=\"UTF-8\" />
-    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />
+    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no\" />
     <title>ResumeStudio — Minimal Dark</title>
     <style>
         :root {
@@ -47,8 +47,16 @@ HTML_TEMPLATE = """
             --border: #202a3c;
             --code-bg: #0f1625;
         }
-        * { box-sizing: border-box; }
-        html, body { height: 100%; }
+        * { 
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        html { 
+            height: 100%;
+            overflow-x: hidden;
+            -webkit-text-size-adjust: 100%;
+        }
         body {
             margin: 0;
             font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell,
@@ -56,108 +64,207 @@ HTML_TEMPLATE = """
             color: var(--text);
             background: radial-gradient(1200px 600px at 10% 10%, #10192b 0%, #0b0f17 60%) no-repeat fixed;
             min-height: 100vh;
-            display: block;
-            padding: 24px 24px calc(72px + env(safe-area-inset-bottom, 0px));
+            padding: clamp(12px, 3vw, 24px);
+            padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+            overflow-x: hidden;
+            width: 100%;
         }
         .app {
-            width: min(1000px, 100%);
+            max-width: 1000px;
+            width: 100%;
             display: grid;
-            gap: 18px;
+            gap: clamp(12px, 2vw, 18px);
             margin: 0 auto;
         }
         .panels {
             display: grid;
-            gap: 18px;
+            gap: clamp(12px, 2vw, 18px);
             grid-template-columns: 1fr;
+            width: 100%;
         }
         @media (min-width: 960px) {
             .panels { grid-template-columns: 1fr 1fr; }
         }
-        .row { display: flex; gap: 12px; align-items: center; }
+        .row { 
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
         .logo {
-            width: 36px; height: 36px; border-radius: 8px;
-            display: grid; place-items: center;
+            width: 36px;
+            height: 36px;
+            min-width: 36px;
+            border-radius: 8px;
+            display: grid;
+            place-items: center;
             background: linear-gradient(135deg, var(--primary), #9e77ff);
             box-shadow: 0 8px 24px rgba(124, 156, 255, 0.25);
             font-size: 18px;
         }
-        .title { font-weight: 700; letter-spacing: 0.3px; }
-        .badge { font-size: 12px; padding: 6px 10px; border-radius: 999px; border: 1px solid var(--border); color: var(--muted); margin-left: auto; }
+        .title { 
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            font-size: clamp(16px, 2.5vw, 18px);
+        }
+        .small {
+            font-size: clamp(12px, 1.8vw, 14px);
+        }
+        .badge { 
+            font-size: clamp(10px, 1.5vw, 12px);
+            padding: 6px 10px;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            color: var(--muted);
+            margin-left: auto;
+            white-space: nowrap;
+        }
 
         .panel {
             background: var(--panel);
             border: 1px solid var(--border);
             border-radius: 14px;
-            padding: 18px;
+            padding: clamp(14px, 2.5vw, 18px);
+            width: 100%;
+            overflow: hidden;
         }
-        label { display: block; color: var(--muted); font-size: 14px; margin-bottom: 8px; }
+        label { 
+            display: block;
+            color: var(--muted);
+            font-size: clamp(12px, 1.8vw, 14px);
+            margin-bottom: 8px;
+        }
         textarea {
             width: 100%;
             min-height: 180px;
+            max-width: 100%;
             resize: vertical;
             background: #0c1220;
             color: var(--text);
             border: 1px solid var(--border);
             border-radius: 12px;
-            padding: 14px 14px;
-            font-size: 14px;
-            line-height: 1.4;
+            padding: 14px;
+            font-size: clamp(12px, 1.8vw, 14px);
+            line-height: 1.5;
             outline: none;
             transition: border-color .2s, box-shadow .2s;
         }
-        textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(124, 156, 255, .12); }
+        textarea:focus { 
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(124, 156, 255, .12);
+        }
         button {
-            appearance: none; border: none; outline: none; cursor: pointer;
+            appearance: none;
+            border: none;
+            outline: none;
+            cursor: pointer;
             background: linear-gradient(135deg, var(--primary), var(--primary-2));
-            color: white; font-weight: 600; letter-spacing: .2px;
-            padding: 12px 16px; border-radius: 12px; min-width: 160px;
+            color: white;
+            font-weight: 600;
+            letter-spacing: .2px;
+            padding: 12px 16px;
+            border-radius: 12px;
+            min-width: 120px;
+            font-size: clamp(12px, 1.8vw, 14px);
             box-shadow: 0 10px 24px rgba(124, 156, 255, 0.25);
             transition: transform .12s ease, filter .2s ease, opacity .2s ease;
+            white-space: nowrap;
         }
-        button:hover { transform: translateY(-1px); filter: brightness(1.05); }
-        button:active { transform: translateY(0); filter: brightness(.98); }
-        button.secondary { background: transparent; color: var(--muted); box-shadow: none; border: 1px solid var(--border); }
-        button:disabled { opacity: .6; cursor: not-allowed; }
+        button:hover { 
+            transform: translateY(-1px);
+            filter: brightness(1.05);
+        }
+        button:active { 
+            transform: translateY(0);
+            filter: brightness(.98);
+        }
+        button.secondary { 
+            background: transparent;
+            color: var(--muted);
+            box-shadow: none;
+            border: 1px solid var(--border);
+            min-width: 80px;
+        }
+        button:disabled { 
+            opacity: .6;
+            cursor: not-allowed;
+        }
 
-        .status { font-size: 14px; color: var(--muted); margin-left: 8px; min-height: 20px; }
+        .status { 
+            font-size: clamp(12px, 1.8vw, 14px);
+            color: var(--muted);
+            margin-left: 8px;
+            min-height: 20px;
+            word-break: break-word;
+        }
         .status.ok { color: var(--success); }
         .status.err { color: var(--error); }
 
-        .section-title { font-size: 13px; color: var(--muted); margin-bottom: 10px; }
+        .section-title { 
+            font-size: clamp(11px, 1.6vw, 13px);
+            color: var(--muted);
+            margin-bottom: 10px;
+        }
         .code {
             background: var(--code-bg);
             border: 1px solid var(--border);
             border-radius: 12px;
             padding: 12px;
             font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, \"Liberation Mono\", \"Courier New\", monospace;
-            font-size: 12.5px;
+            font-size: clamp(11px, 1.6vw, 12.5px);
             color: #d1e0ff;
-            line-height: 1.45;
+            line-height: 1.5;
             max-height: 520px;
             min-height: 220px;
             overflow: auto;
             white-space: pre;
+            word-break: break-all;
+            width: 100%;
         }
         .muted { color: var(--muted); }
-        .link { color: var(--primary); text-decoration: none; }
+        .link { 
+            color: var(--primary);
+            text-decoration: none;
+            font-size: clamp(12px, 1.8vw, 14px);
+        }
         .link:hover { text-decoration: underline; }
         .hidden { display: none !important; }
 
-        /* Download button "reserve" space: invisible until ready, to avoid layout shift */
         #downloadPdf {
-            display: inline-flex; align-items: center; justify-content: center; padding: 10px 14px;
-            border-radius: 10px; border: 1px solid var(--border); background: #0c1220; color: var(--text);
-            visibility: hidden; pointer-events: none; opacity: .6;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 14px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: #0c1220;
+            color: var(--text);
+            visibility: hidden;
+            pointer-events: none;
+            opacity: .6;
             transition: color .2s ease, border-color .2s ease, opacity .2s ease;
+            white-space: nowrap;
+            font-size: clamp(12px, 1.8vw, 14px);
         }
-        #downloadPdf.ready { visibility: visible; pointer-events: auto; opacity: 1; }
-        #downloadPdf:hover { border-color: var(--primary); color: var(--primary); }
+        #downloadPdf.ready { 
+            visibility: visible;
+            pointer-events: auto;
+            opacity: 1;
+        }
+        #downloadPdf:hover { 
+            border-color: var(--primary);
+            color: var(--primary);
+        }
 
         .spinner {
-            width: 14px; height: 14px; border-radius: 50%;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
             border: 2px solid rgba(124, 156, 255, .35);
             border-top-color: var(--primary);
-            display: inline-block; margin-right: 8px; vertical-align: -2px;
+            display: inline-block;
+            margin-right: 8px;
+            vertical-align: -2px;
             animation: spin .8s linear infinite;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
@@ -165,11 +272,29 @@ HTML_TEMPLATE = """
         .fixed-footer {
             position: fixed;
             bottom: calc(12px + env(safe-area-inset-bottom, 0px));
-            left: 0; right: 0;
+            left: 0;
+            right: 0;
             text-align: center;
             color: var(--muted);
-            font-size: 12px;
+            font-size: clamp(10px, 1.5vw, 12px);
             pointer-events: none;
+            padding: 0 12px;
+        }
+
+        /* Mobile improvements */
+        @media (max-width: 768px) {
+            .row {
+                gap: 8px;
+            }
+            .badge {
+                margin-left: 0;
+                margin-top: 8px;
+                width: 100%;
+                text-align: center;
+            }
+            button {
+                min-width: 100px;
+            }
         }
     </style>
 </head>
